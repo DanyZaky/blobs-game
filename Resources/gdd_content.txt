@@ -1,0 +1,105 @@
+1.  Concept Concept 
+Blobs is a 2D puzzle game where players control adorable blob creatures with unique 
+behaviors and must merge and strategize their way through increasingly complex levels on a 
+tiled board. 
+2. Genre & Platform 
+●​ Genre: Puzzle / Strategy 
+●​ Art Style: 2D top-down with bubbly, soft-edged cartoon aesthetics 
+●​ Target Platforms: Web, iOS, Android (initial development in Unity)​
+ 
+3. Core Gameplay 
+Objective: 
+Merge blobs to clear the board while navigating merge constraints and special blob 
+behaviors. Blobs can only be merged if they are on the same row or column. Blobs can not 
+merge with other blobs sharing the same color (this does not apply to some special blobs) 
+Core Loop: 
+1.​ Select a Blob →​
+ 
+2.​ Merge or Move toward a valid blob →​
+ 
+3.​ Activate Blob Behaviors (Trail, Ghost, etc.) →​
+ 
+4.​ Modify board state →​
+ 
+5.​ Repeat until no blobs are left 
+6. Visual Design 
+Style: 
+●​ Soft, bubbly characters with high color contrast​
+ 
+●​ Minimal UI to keep focus on the board​
+ 
+ 
+ 
+7. Progression & Levels 
+●​ Levels start simple: merging two blobs 
+●​ New mechanics introduced one at a time (e.g., Trail Blob, Ghost Blob, Sigil tile) 
+●​ Puzzle difficulty increases through:​
+ 
+○​ Tile layout complexity 
+○​ Merge path restrictions 
+○​ Complex blob behaviors  
+ 
+8. Tutorial System 
+●​ Step-by-step guides using text per action 
+●​ Animations highlighting swipe direction and target tile 
+●​ “Forced move” system 
+4. Game Mechanics 
+Blobs: 
+Blob Type 
+Description 
+Can 
+Initiate 
+a Merge 
+Normal Blob 
+Standard unit for merging. 
+Merges with like-sized/smaller 
+blobs 
+Yes 
+Trail Blob 
+Leaves a trail of blobs behind it 
+after merging 
+Yes 
+Ghost Blob 
+"Haunts" another blob’s space 
+after merging 
+No 
+Flag Blob 
+Goal point. A Blob of the same 
+color can merge with it and it will 
+clear both off the board. Only 
+works when no other blobs are 
+on the board 
+No 
+Rock Blob 
+Obstacle that blocks direct 
+merges 
+No 
+Switch Blob 
+Turns the corresponding laser 
+obstacle off  
+No 
+ 
+ 
+Actions: 
+●​ Swipe-to-Merge: Merge by swiping from one blob to another, or by selecting the two 
+one after the other. 
+●​ Undo: Reverses last merge with animated step-by-step rollback. 
+ 
+5. Systems & Patterns 
+●​ Command Pattern: Used for executing and undoing merges. 
+●​ Strategy Pattern: Used for custom merge behaviors per blob. 
+●​ Plan/Chain Logic: Allows blob actions to traverse paths and modify plans based on 
+what's encountered. 
+10. Development Tools 
+●​ Engine: Unity (2D pipeline using isometric camera setup) 
+●​ Language: C# 
+●​ Graphics: Custom sprites (Photoshop) 
+●​ Animation: DOTween for movement, scaling, easing 
+●​ Version Control: Git​
+ 
+11. Stretch Goals 
+●​ Colorblind mode 
+●​ Level editor for custom puzzles 
+●​ Story mode? 
+ 
+ 
