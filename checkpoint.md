@@ -40,6 +40,13 @@
 - Win when **0 playable blobs** remain
 - Rock obstacles **don't count** towards win
 
+### Prefab System
+- Separate prefab for each blob type:
+  - `normalBlobPrefab`, `trailBlobPrefab`, `ghostBlobPrefab`
+  - `flagBlobPrefab`, `rockBlobPrefab`, `switchBlobPrefab`
+- Fallback to programmatic creation if prefab not assigned
+
+
 ---
 
 ## 📁 Project Structure

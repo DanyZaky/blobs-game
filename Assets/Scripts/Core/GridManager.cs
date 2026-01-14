@@ -14,7 +14,14 @@ namespace Blobs.Core
 
         [Header("Prefabs")]
         [SerializeField] private GameObject tilePrefab;
-        [SerializeField] private GameObject blobPrefab;
+        
+        [Header("Blob Prefabs")]
+        [SerializeField] private GameObject normalBlobPrefab;
+        [SerializeField] private GameObject trailBlobPrefab;
+        [SerializeField] private GameObject ghostBlobPrefab;
+        [SerializeField] private GameObject flagBlobPrefab;
+        [SerializeField] private GameObject rockBlobPrefab;
+        [SerializeField] private GameObject switchBlobPrefab;
 
         [Header("Test Setup")]
         [SerializeField] private List<TestBlobData> testBlobs = new List<TestBlobData>();
@@ -200,12 +207,16 @@ namespace Blobs.Core
             }
 
             GameObject blobObj;
-            if (blobPrefab != null)
+            GameObject prefab = GetPrefabForType(type);
+            
+            if (prefab != null)
             {
-                blobObj = Instantiate(blobPrefab, tile.transform.position, Quaternion.identity, transform);
+                blobObj = Instantiate(prefab, tile.transform.position, Quaternion.identity, transform);
+                blobObj.name = $"{type}Blob_{gridPos.x}_{gridPos.y}";
             }
             else
             {
+                // Fallback to programmatic creation if no prefab assigned
                 blobObj = CreateDefaultBlob(tile.transform.position, type);
             }
 
@@ -220,7 +231,26 @@ namespace Blobs.Core
             return blob;
         }
 
+
+        /// <summary>
+        /// Returns the appropriate prefab for the given blob type.
+        /// </summary>
+        private GameObject GetPrefabForType(BlobType type)
+        {
+            return type switch
+            {
+                BlobType.Normal => normalBlobPrefab,
+                BlobType.Trail => trailBlobPrefab,
+                BlobType.Ghost => ghostBlobPrefab,
+                BlobType.Flag => flagBlobPrefab,
+                BlobType.Rock => rockBlobPrefab,
+                BlobType.Switch => switchBlobPrefab,
+                _ => normalBlobPrefab
+            };
+        }
+
         private GameObject CreateDefaultBlob(Vector3 position, BlobType type = BlobType.Normal)
+
         {
             GameObject blobObj = new GameObject("Blob");
             blobObj.transform.position = position;
