@@ -54,22 +54,47 @@ namespace Blobs.Blobs
         // Derived from type
         public bool CanInitiateMerge => blobType == BlobType.Normal || blobType == BlobType.Trail;
 
-        private static readonly Color[] ColorPalette = new Color[]
+        // Base colors for each BlobColor
+        private static readonly Color[] BaseColorPalette = new Color[]
         {
-            new Color(1f, 0.5f, 0.7f),      // Pink
-            new Color(0.4f, 0.7f, 1f),      // Blue
-            new Color(1f, 0.4f, 0.4f),      // Red
-            new Color(0.4f, 0.9f, 0.9f),    // Cyan
-            new Color(0.5f, 0.9f, 0.5f),    // Green
-            new Color(1f, 0.9f, 0.4f),      // Yellow
-            new Color(1f, 1f, 1f),          // White (Ghost)
-            new Color(0.5f, 0.5f, 0.5f)     // Gray (Rock)
+            HexToColor("FF80B3"),   // Pink
+            HexToColor("47BDFF"),   // Blue
+            HexToColor("FF6666"),   // Red
+            HexToColor("66E6E6"),   // Cyan
+            HexToColor("80E680"),   // Green
+            HexToColor("FFE666"),   // Yellow
+            HexToColor("FFFFFF"),   // White (Ghost)
+            HexToColor("808080")    // Gray (Rock)
         };
+
+        // Shadow colors for each BlobColor
+        private static readonly Color[] ShadowColorPalette = new Color[]
+        {
+            HexToColor("8B0045"),   // Pink shadow
+            HexToColor("005057"),   // Blue shadow
+            HexToColor("8B0000"),   // Red shadow
+            HexToColor("005757"),   // Cyan shadow
+            HexToColor("006600"),   // Green shadow
+            HexToColor("8B7300"),   // Yellow shadow
+            HexToColor("808080"),   // White shadow (Ghost)
+            HexToColor("404040")    // Gray shadow (Rock)
+        };
+
+        // Shader property IDs (cached for performance)
+        private static readonly int BaseColorProperty = Shader.PropertyToID("_BaseColor");
+        private static readonly int ShadowColorProperty = Shader.PropertyToID("_ShadowColor");
+        private MaterialPropertyBlock materialPropertyBlock;
+
+        private static Color HexToColor(string hex)
+        {
+            ColorUtility.TryParseHtmlString("#" + hex, out Color color);
+            return color;
+        }
 
         private void Awake()
         {
             if (spriteRenderer == null)
-                spriteRenderer = GetComponent<SpriteRenderer>();
+                spriteRenderer = GetComponentInChildren<SpriteRenderer>();
             
             // Get or add animator
             animator = GetComponent<BlobAnimator>();
@@ -133,24 +158,46 @@ namespace Blobs.Blobs
         {
             if (spriteRenderer == null) return;
 
-            // Set base color
-            Color baseColor = ColorPalette[(int)blobColor];
-            
-            // Modify appearance based on type
+            // Initialize MaterialPropertyBlock if needed
+            if (materialPropertyBlock == null)
+                materialPropertyBlock = new MaterialPropertyBlock();
+
+            // Get current property block
+            spriteRenderer.GetPropertyBlock(materialPropertyBlock);
+
+            Color baseColor;
+            Color shadowColor;
+
+            // Get colors based on type (special types override the palette)
             switch (blobType)
             {
                 case BlobType.Ghost:
-                    baseColor = new Color(1f, 1f, 1f, 0.7f); // Transparent white
+                    baseColor = HexToColor("FFFFFF");
+                    shadowColor = HexToColor("808080");
+                    // Make ghost semi-transparent
+                    spriteRenderer.color = new Color(1f, 1f, 1f, 0.7f);
                     break;
                 case BlobType.Rock:
-                    baseColor = new Color(0.4f, 0.35f, 0.3f); // Rocky brown-gray
+                    baseColor = HexToColor("665A54");
+                    shadowColor = HexToColor("332D2A");
+                    spriteRenderer.color = Color.white;
                     break;
                 case BlobType.Switch:
-                    baseColor = new Color(0.8f, 0.6f, 0.2f); // Golden/switch color
+                    baseColor = HexToColor("CC9933");
+                    shadowColor = HexToColor("664D1A");
+                    spriteRenderer.color = Color.white;
+                    break;
+                default:
+                    baseColor = BaseColorPalette[(int)blobColor];
+                    shadowColor = ShadowColorPalette[(int)blobColor];
+                    spriteRenderer.color = Color.white;
                     break;
             }
-            
-            spriteRenderer.color = baseColor;
+
+            // Set material properties
+            materialPropertyBlock.SetColor(BaseColorProperty, baseColor);
+            materialPropertyBlock.SetColor(ShadowColorProperty, shadowColor);
+            spriteRenderer.SetPropertyBlock(materialPropertyBlock);
         }
 
         public void Select()
@@ -251,7 +298,7 @@ namespace Blobs.Blobs
 
         public Color GetColor()
         {
-            return ColorPalette[(int)blobColor];
+            return BaseColorPalette[(int)blobColor];
         }
 
         public void SetType(BlobType type)
