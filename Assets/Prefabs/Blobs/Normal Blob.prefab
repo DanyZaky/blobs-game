@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1889189986113857665}
   - component: {fileID: -8137608527620470206}
+  - component: {fileID: 8374028059600065414}
   m_Layer: 0
   m_Name: Normal Blob
   m_TagString: Untagged
@@ -79,6 +80,33 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &8374028059600065414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1468080444204028906}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba611d1f8b3de024e9c1e6cf63d764e2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  idleScaleAmount: 0.02
+  idleScaleDuration: 1.5
+  idleFloatAmount: 0.03
+  idleFloatDuration: 2
+  selectedScaleAmount: 0.12
+  selectedScaleDuration: 0.5
+  selectedRotationAmount: 3
+  selectedRotationDuration: 0.3
+  moveDuration: 0.3
+  moveArcHeight: 0.3
+  moveEase: 6
+  spawnDuration: 0.25
+  despawnDuration: 0.2
+  mergeDuration: 0.25
+  mergeParticlePrefab: {fileID: 3589974769046533848, guid: 4eb5887f694df468e9074691bbc2de67, type: 3}
 --- !u!1 &3245184740737095151
 GameObject:
   m_ObjectHideFlags: 0

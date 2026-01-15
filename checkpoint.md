@@ -28,12 +28,14 @@
 | Rock | Obstacle (not counted) | ❌ No |
 | Switch | Toggles laser | ❌ No |
 
-### Animations Added
-- Pop-in spawn effect
-- Selection pulse
-- Smooth arc movement
-- Shrink + spin despawn
-- Shake for invalid moves
+### Animations (DOTween)
+- **Idle state**: Gentle breathing pulse + subtle float animation
+- **Selected state**: Larger pulse + rotation wobble
+- **Movement**: Arc path with easing
+- **Merge**: Squish towards target + color-matched particles
+- **Spawn**: Pop-in with overshoot bounce
+- **Despawn**: Shrink + spin + fade
+- **Shake**: Quick horizontal shake for invalid moves
 - Input blocking during animations
 
 ### Win Condition

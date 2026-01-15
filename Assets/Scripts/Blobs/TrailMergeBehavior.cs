@@ -50,10 +50,11 @@ namespace Blobs.Blobs
             
             if (targetAnimator != null)
             {
+                Color blobColor = target.GetColor();
                 targetAnimator.PlayMergeAnimation(source.transform.position, () =>
                 {
                     grid.RemoveBlob(target);
-                });
+                }, blobColor);
             }
             else
             {

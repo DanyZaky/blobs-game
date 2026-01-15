@@ -29,11 +29,12 @@ namespace Blobs.Blobs
             // Animate target being absorbed (shrink)
             if (targetAnimator != null)
             {
+                Color blobColor = target.GetColor();
                 targetAnimator.PlayMergeAnimation(source.transform.position, () =>
                 {
                     // Remove target after animation
                     grid.RemoveBlob(target);
-                });
+                }, blobColor);
             }
             else
             {

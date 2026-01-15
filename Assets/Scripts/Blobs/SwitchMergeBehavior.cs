@@ -27,10 +27,11 @@ namespace Blobs.Blobs
             BlobAnimator targetAnimator = target.GetComponent<BlobAnimator>();
             if (targetAnimator != null)
             {
+                Color blobColor = target.GetColor();
                 targetAnimator.PlayMergeAnimation(source.transform.position, () =>
                 {
                     grid.RemoveBlob(target);
-                });
+                }, blobColor);
             }
             else
             {
