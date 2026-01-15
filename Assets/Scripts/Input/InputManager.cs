@@ -97,6 +97,12 @@ namespace Blobs.Input
                 {
                     SelectBlob(clickedBlob);
                 }
+                else
+                {
+                    // Show feedback for non-selectable blobs (Flag, Rock, Ghost, Switch)
+                    UIManager.Instance?.ShowCannotSelectFeedback();
+                    clickedBlob.PlayInvalidMoveEffect();
+                }
             }
             else if (selectedBlob == clickedBlob)
             {
@@ -151,6 +157,8 @@ namespace Blobs.Input
             }
 
             Debug.Log("[InputManager] No blob found in direction");
+            UIManager.Instance?.ShowNoMoveFeedback();
+            selectedBlob?.PlayInvalidMoveEffect();
         }
 
         private void TryMerge(Blob source, Blob target)
@@ -158,6 +166,17 @@ namespace Blobs.Input
             if (!source.CanMergeWith(target))
             {
                 Debug.Log($"[InputManager] Cannot merge {source.BlobColorType} with {target.BlobColorType}");
+                
+                // Show appropriate feedback
+                if (target.BlobColorType == source.BlobColorType)
+                {
+                    UIManager.Instance?.ShowSameColorFeedback();
+                }
+                else
+                {
+                    UIManager.Instance?.ShowCannotMergeFeedback();
+                }
+                source.PlayInvalidMoveEffect();
                 return;
             }
 
