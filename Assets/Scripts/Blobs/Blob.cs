@@ -307,5 +307,46 @@ namespace Blobs.Blobs
             AssignBehavior();
             UpdateVisual();
         }
+
+        /// <summary>
+        /// Get tooltip info for this blob type
+        /// </summary>
+        public (string title, string description, string hint) GetTooltipInfo()
+        {
+            return blobType switch
+            {
+                BlobType.Normal => (
+                    "Normal Blob",
+                    "Can merge with different colors.",
+                    "Click to select, then use arrows!"
+                ),
+                BlobType.Trail => (
+                    "Trail Blob",
+                    "Leaves a trail of blobs behind.",
+                    "Creates new blobs along the path!"
+                ),
+                BlobType.Ghost => (
+                    "Ghost Blob",
+                    "Respawns at original position.",
+                    "Cannot initiate merge"
+                ),
+                BlobType.Flag => (
+                    "Flag Blob",
+                    "Goal! Match with same color to clear.",
+                    "Cannot initiate merge"
+                ),
+                BlobType.Rock => (
+                    "Rock Blob",
+                    "Obstacle - blocks movement.",
+                    "Cannot be merged"
+                ),
+                BlobType.Switch => (
+                    "Switch Blob",
+                    "Toggles laser on/off.",
+                    "Cannot initiate merge"
+                ),
+                _ => ("Blob", "Unknown type", "")
+            };
+        }
     }
 }

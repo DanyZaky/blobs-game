@@ -112,6 +112,22 @@ namespace Blobs
                 inputManager = obj.AddComponent<InputManager>();
             }
 
+            // UIManager (for feedback text)
+            UIManager uiManager = FindObjectOfType<UIManager>();
+            if (uiManager == null)
+            {
+                GameObject obj = new GameObject("UIManager");
+                obj.AddComponent<UIManager>();
+            }
+
+            // BlobTooltipManager (for hover tooltips)
+            BlobTooltipManager tooltipManager = FindObjectOfType<BlobTooltipManager>();
+            if (tooltipManager == null)
+            {
+                GameObject obj = new GameObject("BlobTooltipManager");
+                obj.AddComponent<BlobTooltipManager>();
+            }
+
             Debug.Log("[GameplaySceneSetup] All managers created");
         }
 
