@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ccf5064126bdb3947ac21a4e23403fb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentLevel: {fileID: 11400000, guid: c3d4e5f67890abcdef1234567890abcd, type: 2}
   gridWidth: 5
   gridHeight: 5
   tileSize: 1.2
@@ -159,8 +160,6 @@ MonoBehaviour:
   flagBlobPrefab: {fileID: 6652314921425970381, guid: 066cad30494854710862b2340b444baf, type: 3}
   rockBlobPrefab: {fileID: 3053600150994310830, guid: 81dd676d5649b43aba0daed22756c80d, type: 3}
   switchBlobPrefab: {fileID: 6363561152507197811, guid: 5b011936ff39d4da4a54a22cdcf46449, type: 3}
-  testBlobs: []
-  spawnShowcaseLevel: 1
 --- !u!4 &114797834
 Transform:
   m_ObjectHideFlags: 0
@@ -1058,8 +1057,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hoverDelay: 0.3
   blobLayer:
-    serializedVersion: 2
     m_Bits: 4294967295
+  tooltipController: {fileID: 0}
+  tooltipStyle: {fileID: 0}
+  mainCamera: {fileID: 0}
+  currentHoveredBlob: {fileID: 0}
+  hoverTimer: 0
+  isShowingTooltip: 0
 --- !u!1 &1618943926
 GameObject:
   m_ObjectHideFlags: 0
