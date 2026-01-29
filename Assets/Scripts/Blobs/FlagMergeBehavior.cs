@@ -1,5 +1,6 @@
 using UnityEngine;
-using Blobs.Core;
+using Blobs.Interfaces;
+using Blobs.Presenters;
 
 namespace Blobs.Blobs
 {
@@ -10,7 +11,7 @@ namespace Blobs.Blobs
     /// </summary>
     public class FlagMergeBehavior : IMergeBehavior
     {
-        public void OnMerge(Blob source, Blob target, GridManager grid)
+        public void OnMerge(IBlobPresenter source, IBlobPresenter target, IGridPresenter grid)
         {
             if (source == null || target == null || grid == null)
             {
@@ -30,7 +31,7 @@ namespace Blobs.Blobs
             }
 
             // Check same color (required for flag)
-            if (source.BlobColorType != target.BlobColorType)
+            if (source.Model.Color != target.Model.Color)
             {
                 Debug.Log("[FlagMergeBehavior] Cannot merge - flag requires same color!");
                 source.PlayInvalidMoveEffect();
@@ -39,36 +40,32 @@ namespace Blobs.Blobs
 
             Debug.Log("[FlagMergeBehavior] 🚩 Flag cleared successfully!");
 
-            // Animate both blobs disappearing together
-            BlobAnimator sourceAnimator = source.GetComponent<BlobAnimator>();
-            BlobAnimator targetAnimator = target.GetComponent<BlobAnimator>();
-
+            Vector2Int targetPos = target.Model.GridPosition;
             source.Deselect();
 
             // Move source to flag position first
-            Tile flagTile = target.CurrentTile;
-            source.MoveTo(flagTile, () =>
+            source.MoveTo(targetPos, () =>
             {
-                // Then both disappear
-                if (sourceAnimator != null)
+                // Then source disappears
+                if (source.View != null)
                 {
-                    sourceAnimator.PlayDespawnAnimation(() =>
+                    source.View.PlayDespawnAnimation(() =>
                     {
                         grid.RemoveBlob(source);
-                        GameManager.Instance?.CheckWinCondition();
+                        ServiceLocator.Game?.CheckWinCondition();
                     });
                 }
                 else
                 {
                     grid.RemoveBlob(source);
-                    GameManager.Instance?.CheckWinCondition();
+                    ServiceLocator.Game?.CheckWinCondition();
                 }
             });
 
             // Flag disappears immediately
-            if (targetAnimator != null)
+            if (target.View != null)
             {
-                targetAnimator.PlayDespawnAnimation(() =>
+                target.View.PlayDespawnAnimation(() =>
                 {
                     grid.RemoveBlob(target);
                 });

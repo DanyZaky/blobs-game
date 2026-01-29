@@ -1,15 +1,16 @@
 using UnityEngine;
-using Blobs.Core;
+using Blobs.Interfaces;
+using Blobs.Presenters;
 
 namespace Blobs.Blobs
 {
     /// <summary>
     /// Default merge behavior for normal blobs.
-    /// Source blob moves to target's position with smooth animation, target is absorbed.
+    /// Source blob moves to target's position, target is absorbed.
     /// </summary>
     public class NormalMergeBehavior : IMergeBehavior
     {
-        public void OnMerge(Blob source, Blob target, GridManager grid)
+        public void OnMerge(IBlobPresenter source, IBlobPresenter target, IGridPresenter grid)
         {
             if (source == null || target == null || grid == null)
             {
@@ -17,37 +18,42 @@ namespace Blobs.Blobs
                 return;
             }
 
-            Debug.Log($"[NormalMergeBehavior] Merging {source.BlobColorType} into {target.BlobColorType}");
+            Debug.Log($"[NormalMergeBehavior] Merging {source.Model.Color} into {target.Model.Color}");
 
-            // Store target tile before animations
-            Tile targetTile = target.CurrentTile;
-            Vector3 targetPosition = target.transform.position;
+            // Store target position
+            Vector2Int targetPos = target.Model.GridPosition;
 
-            // Get animator from target for despawn
-            BlobAnimator targetAnimator = target.GetComponent<BlobAnimator>();
-            
-            // Animate target being absorbed (shrink)
-            if (targetAnimator != null)
+            // Animate target being absorbed (via view)
+            if (target.View != null)
             {
-                Color blobColor = target.GetColor();
-                targetAnimator.PlayMergeAnimation(source.transform.position, () =>
+                Color blobColor = GetBlobColor(target);
+                target.View.PlayMergeAnimation(blobColor, () =>
                 {
                     // Remove target after animation
                     grid.RemoveBlob(target);
-                }, blobColor);
+                });
             }
             else
             {
                 grid.RemoveBlob(target);
             }
 
-            // Move source to target's position with animation
+            // Move source to target's position
             source.Deselect();
-            source.MoveTo(targetTile, () =>
+            source.MoveTo(targetPos, () =>
             {
                 // Check win condition after animation completes
-                GameManager.Instance?.CheckWinCondition();
+                ServiceLocator.Game?.CheckWinCondition();
             });
+        }
+
+        private Color GetBlobColor(IBlobPresenter blob)
+        {
+            if (blob is BlobPresenter presenter)
+            {
+                return presenter.GetColor();
+            }
+            return Color.white;
         }
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
-using Blobs.Core;
+using Blobs.Interfaces;
+using Blobs.Presenters;
 
 namespace Blobs.Blobs
 {
@@ -9,7 +10,7 @@ namespace Blobs.Blobs
     /// </summary>
     public class GhostMergeBehavior : IMergeBehavior
     {
-        public void OnMerge(Blob source, Blob target, GridManager grid)
+        public void OnMerge(IBlobPresenter source, IBlobPresenter target, IGridPresenter grid)
         {
             if (source == null || target == null || grid == null)
             {
@@ -19,15 +20,14 @@ namespace Blobs.Blobs
 
             Debug.Log($"[GhostMergeBehavior] Ghost absorbed, haunting source position");
 
-            Vector2Int sourceOriginalPos = source.CurrentTile.GridPosition;
-            Tile targetTile = target.CurrentTile;
-            BlobColor ghostColor = target.BlobColorType;
+            Vector2Int sourceOriginalPos = source.Model.GridPosition;
+            Vector2Int targetPos = target.Model.GridPosition;
+            BlobColor ghostColor = target.Model.Color;
 
             // Animate ghost being absorbed
-            BlobAnimator targetAnimator = target.GetComponent<BlobAnimator>();
-            if (targetAnimator != null)
+            if (target.View != null)
             {
-                targetAnimator.PlayDespawnAnimation(() =>
+                target.View.PlayDespawnAnimation(() =>
                 {
                     grid.RemoveBlob(target);
                 });
@@ -39,14 +39,14 @@ namespace Blobs.Blobs
 
             // Move source to ghost's position
             source.Deselect();
-            source.MoveTo(targetTile, () =>
+            source.MoveTo(targetPos, () =>
             {
                 // Spawn new ghost at source's original position (haunting!)
-                grid.SpawnBlob(sourceOriginalPos, ghostColor, BlobType.Ghost);
+                grid.SpawnBlob(sourceOriginalPos, BlobType.Ghost, ghostColor);
                 Debug.Log($"[GhostMergeBehavior] New ghost spawned at {sourceOriginalPos}");
 
                 // Check win condition
-                GameManager.Instance?.CheckWinCondition();
+                ServiceLocator.Game?.CheckWinCondition();
             });
         }
     }

@@ -1,5 +1,6 @@
 using UnityEngine;
-using Blobs.Core;
+using Blobs.Interfaces;
+using Blobs.Presenters;
 
 namespace Blobs.Blobs
 {
@@ -9,7 +10,7 @@ namespace Blobs.Blobs
     /// </summary>
     public class SwitchMergeBehavior : IMergeBehavior
     {
-        public void OnMerge(Blob source, Blob target, GridManager grid)
+        public void OnMerge(IBlobPresenter source, IBlobPresenter target, IGridPresenter grid)
         {
             if (source == null || target == null || grid == null)
             {
@@ -20,18 +21,17 @@ namespace Blobs.Blobs
             Debug.Log("[SwitchMergeBehavior] ⚡ Switch activated!");
 
             // Get switch color for laser matching
-            BlobColor switchColor = target.BlobColorType;
-            Tile targetTile = target.CurrentTile;
+            BlobColor switchColor = target.Model.Color;
+            Vector2Int targetPos = target.Model.GridPosition;
 
             // Animate switch being absorbed
-            BlobAnimator targetAnimator = target.GetComponent<BlobAnimator>();
-            if (targetAnimator != null)
+            if (target.View != null)
             {
-                Color blobColor = target.GetColor();
-                targetAnimator.PlayMergeAnimation(source.transform.position, () =>
+                Color blobColor = GetBlobColor(target);
+                target.View.PlayMergeAnimation(blobColor, () =>
                 {
                     grid.RemoveBlob(target);
-                }, blobColor);
+                });
             }
             else
             {
@@ -40,11 +40,20 @@ namespace Blobs.Blobs
 
             // Move source to switch position
             source.Deselect();
-            source.MoveTo(targetTile, () =>
+            source.MoveTo(targetPos, () =>
             {
                 Debug.Log($"[SwitchMergeBehavior] Laser of color {switchColor} should be disabled");
-                GameManager.Instance?.CheckWinCondition();
+                ServiceLocator.Game?.CheckWinCondition();
             });
+        }
+
+        private Color GetBlobColor(IBlobPresenter blob)
+        {
+            if (blob is BlobPresenter presenter)
+            {
+                return presenter.GetColor();
+            }
+            return Color.white;
         }
     }
 }

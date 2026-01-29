@@ -1,6 +1,7 @@
 using UnityEngine;
-using Blobs.Core;
 using System.Collections.Generic;
+using Blobs.Interfaces;
+using Blobs.Presenters;
 
 namespace Blobs.Blobs
 {
@@ -10,7 +11,7 @@ namespace Blobs.Blobs
     /// </summary>
     public class TrailMergeBehavior : IMergeBehavior
     {
-        public void OnMerge(Blob source, Blob target, GridManager grid)
+        public void OnMerge(IBlobPresenter source, IBlobPresenter target, IGridPresenter grid)
         {
             if (source == null || target == null || grid == null)
             {
@@ -20,9 +21,9 @@ namespace Blobs.Blobs
 
             Debug.Log($"[TrailMergeBehavior] Trail blob merging, leaving trail behind");
 
-            Vector2Int sourcePos = source.CurrentTile.GridPosition;
-            Vector2Int targetPos = target.CurrentTile.GridPosition;
-            BlobColor trailColor = source.BlobColorType;
+            Vector2Int sourcePos = source.Model.GridPosition;
+            Vector2Int targetPos = target.Model.GridPosition;
+            BlobColor trailColor = source.Model.Color;
 
             // Calculate direction
             Vector2Int direction = Vector2Int.zero;
@@ -34,7 +35,7 @@ namespace Blobs.Blobs
             // Store positions to spawn trail (excluding source and target positions)
             List<Vector2Int> trailPositions = new List<Vector2Int>();
             Vector2Int currentPos = sourcePos + direction;
-            
+
             while (currentPos != targetPos)
             {
                 if (grid.IsValidPosition(currentPos) && grid.GetBlobAt(currentPos) == null)
@@ -45,16 +46,13 @@ namespace Blobs.Blobs
             }
 
             // Animate target being absorbed
-            Tile targetTile = target.CurrentTile;
-            BlobAnimator targetAnimator = target.GetComponent<BlobAnimator>();
-            
-            if (targetAnimator != null)
+            if (target.View != null)
             {
-                Color blobColor = target.GetColor();
-                targetAnimator.PlayMergeAnimation(source.transform.position, () =>
+                Color blobColor = GetBlobColor(target);
+                target.View.PlayMergeAnimation(blobColor, () =>
                 {
                     grid.RemoveBlob(target);
-                }, blobColor);
+                });
             }
             else
             {
@@ -63,18 +61,27 @@ namespace Blobs.Blobs
 
             // Move source to target position
             source.Deselect();
-            source.MoveTo(targetTile, () =>
+            source.MoveTo(targetPos, () =>
             {
                 // Spawn trail blobs after movement completes
                 foreach (var pos in trailPositions)
                 {
-                    grid.SpawnBlob(pos, trailColor, BlobType.Normal);
+                    grid.SpawnBlob(pos, BlobType.Normal, trailColor);
                     Debug.Log($"[TrailMergeBehavior] Spawned trail blob at {pos}");
                 }
 
                 // Check win condition
-                GameManager.Instance?.CheckWinCondition();
+                ServiceLocator.Game?.CheckWinCondition();
             });
+        }
+
+        private Color GetBlobColor(IBlobPresenter blob)
+        {
+            if (blob is BlobPresenter presenter)
+            {
+                return presenter.GetColor();
+            }
+            return Color.white;
         }
     }
 }

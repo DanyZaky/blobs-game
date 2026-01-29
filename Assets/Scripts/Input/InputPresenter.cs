@@ -2,26 +2,32 @@ using UnityEngine;
 using Blobs.Core;
 using Blobs.Blobs;
 using Blobs.Commands;
+using Blobs.Interfaces;
+using Blobs.Presenters;
+using Blobs.Views;
 
 namespace Blobs.Input
 {
     /// <summary>
-    /// Handles player input for blob selection and merge commands.
-    /// Supports keyboard (arrow keys) and mouse input.
+    /// MVP Input Presenter - handles player input using ServiceLocator.
+    /// Replaces legacy InputManager with clean architecture.
     /// </summary>
-    public class InputManager : MonoBehaviour
+    public class InputPresenter : MonoBehaviour
     {
         [Header("References")]
-        [SerializeField] private GridManager gridManager;
         [SerializeField] private CommandManager commandManager;
 
         [Header("Settings")]
         [SerializeField] private KeyCode undoKey = KeyCode.Z;
         [SerializeField] private KeyCode redoKey = KeyCode.Y;
 
-        private Blob selectedBlob;
+        private IBlobPresenter selectedBlob;
         private Camera mainCamera;
         private bool isInputBlocked;
+
+        // Service references
+        private IGamePresenter Game => ServiceLocator.Game;
+        private IGridPresenter Grid => ServiceLocator.Grid;
 
         private void Awake()
         {
@@ -30,15 +36,14 @@ namespace Blobs.Input
 
         private void Start()
         {
-            if (gridManager == null)
-                gridManager = FindObjectOfType<GridManager>();
             if (commandManager == null)
                 commandManager = FindObjectOfType<CommandManager>();
         }
 
         private void Update()
         {
-            if (GameManager.Instance?.CurrentState != GameState.Playing)
+            // Check game state via ServiceLocator
+            if (Game?.CurrentState != GameState.Playing)
                 return;
 
             // Block input during animations
@@ -74,10 +79,15 @@ namespace Blobs.Input
 
                 if (hit.collider != null)
                 {
-                    Blob clickedBlob = hit.collider.GetComponent<Blob>();
-                    if (clickedBlob != null)
+                    // Try to get BlobView from collider
+                    BlobView blobView = hit.collider.GetComponent<BlobView>();
+                    if (blobView != null)
                     {
-                        HandleBlobClick(clickedBlob);
+                        IBlobPresenter presenter = GetPresenterForView(blobView);
+                        if (presenter != null)
+                        {
+                            HandleBlobClick(presenter);
+                        }
                     }
                 }
                 else if (selectedBlob != null)
@@ -88,18 +98,33 @@ namespace Blobs.Input
             }
         }
 
-        private void HandleBlobClick(Blob clickedBlob)
+        private IBlobPresenter GetPresenterForView(BlobView view)
+        {
+            // Find presenter that owns this view
+            if (Grid == null) return null;
+
+            foreach (var blob in Grid.GetAllBlobs())
+            {
+                if (blob.View == view as IBlobView)
+                {
+                    return blob;
+                }
+            }
+            return null;
+        }
+
+        private void HandleBlobClick(IBlobPresenter clickedBlob)
         {
             if (selectedBlob == null)
             {
                 // Select blob if it can initiate merge
-                if (clickedBlob.CanInitiateMerge)
+                if (clickedBlob.Model.CanInitiateMerge)
                 {
                     SelectBlob(clickedBlob);
                 }
                 else
                 {
-                    // Show feedback for non-selectable blobs (Flag, Rock, Ghost, Switch)
+                    // Show feedback for non-selectable blobs
                     UIManager.Instance?.ShowCannotSelectFeedback();
                     clickedBlob.PlayInvalidMoveEffect();
                 }
@@ -119,6 +144,7 @@ namespace Blobs.Input
         private void HandleKeyboardInput()
         {
             if (selectedBlob == null) return;
+            if (Grid == null) return;
 
             Vector2Int direction = Vector2Int.zero;
 
@@ -139,15 +165,16 @@ namespace Blobs.Input
 
         private void TryMergeInDirection(Vector2Int direction)
         {
-            if (selectedBlob?.CurrentTile == null) return;
+            if (selectedBlob?.Model == null) return;
+            if (Grid == null) return;
 
-            Vector2Int currentPos = selectedBlob.CurrentTile.GridPosition;
-            
+            Vector2Int currentPos = selectedBlob.Model.GridPosition;
+
             // Find first blob in that direction
             Vector2Int checkPos = currentPos + direction;
-            while (gridManager.IsValidPosition(checkPos))
+            while (Grid.IsValidPosition(checkPos))
             {
-                Blob targetBlob = gridManager.GetBlobAt(checkPos);
+                IBlobPresenter targetBlob = Grid.GetBlobAt(checkPos);
                 if (targetBlob != null)
                 {
                     TryMerge(selectedBlob, targetBlob);
@@ -156,19 +183,19 @@ namespace Blobs.Input
                 checkPos += direction;
             }
 
-            Debug.Log("[InputManager] No blob found in direction");
+            Debug.Log("[InputPresenter] No blob found in direction");
             UIManager.Instance?.ShowNoMoveFeedback();
             selectedBlob?.PlayInvalidMoveEffect();
         }
 
-        private void TryMerge(Blob source, Blob target)
+        private void TryMerge(IBlobPresenter source, IBlobPresenter target)
         {
-            if (!source.CanMergeWith(target))
+            if (!source.Model.CanMergeWith(target.Model))
             {
-                Debug.Log($"[InputManager] Cannot merge {source.BlobColorType} with {target.BlobColorType}");
-                
+                Debug.Log($"[InputPresenter] Cannot merge {source.Model.Color} with {target.Model.Color}");
+
                 // Show appropriate feedback
-                if (target.BlobColorType == source.BlobColorType)
+                if (target.Model.Color == source.Model.Color)
                 {
                     UIManager.Instance?.ShowSameColorFeedback();
                 }
@@ -181,18 +208,23 @@ namespace Blobs.Input
             }
 
             // Check if they are on same row or column
-            Vector2Int sourcePos = source.CurrentTile.GridPosition;
-            Vector2Int targetPos = target.CurrentTile.GridPosition;
+            Vector2Int sourcePos = source.Model.GridPosition;
+            Vector2Int targetPos = target.Model.GridPosition;
 
             if (sourcePos.x != targetPos.x && sourcePos.y != targetPos.y)
             {
-                Debug.Log("[InputManager] Blobs must be on same row or column");
+                Debug.Log("[InputPresenter] Blobs must be on same row or column");
                 return;
             }
 
-            // Create and execute merge command
-            MergeCommand mergeCommand = new MergeCommand(source, target, gridManager);
-            commandManager.ExecuteCommand(mergeCommand);
+            // Execute merge via presenter
+            source.ExecuteMerge(target);
+
+            // Increment move count
+            Game?.IncrementMoveCount();
+
+            // Check win condition
+            Game?.CheckWinCondition();
 
             DeselectCurrentBlob();
         }
@@ -209,7 +241,7 @@ namespace Blobs.Input
             }
         }
 
-        private void SelectBlob(Blob blob)
+        private void SelectBlob(IBlobPresenter blob)
         {
             if (selectedBlob != null)
             {
@@ -229,7 +261,7 @@ namespace Blobs.Input
             }
         }
 
-        public Blob GetSelectedBlob()
+        public IBlobPresenter GetSelectedBlob()
         {
             return selectedBlob;
         }

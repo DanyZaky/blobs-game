@@ -1,5 +1,5 @@
 using UnityEngine;
-using Blobs.Core;
+using Blobs.Interfaces;
 
 namespace Blobs.Blobs
 {
@@ -9,7 +9,7 @@ namespace Blobs.Blobs
     /// </summary>
     public class RockMergeBehavior : IMergeBehavior
     {
-        public void OnMerge(Blob source, Blob target, GridManager grid)
+        public void OnMerge(IBlobPresenter source, IBlobPresenter target, IGridPresenter grid)
         {
             // Rock blobs should never be involved in merges
             // This is blocked at the CanMergeWith level

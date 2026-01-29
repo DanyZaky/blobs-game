@@ -1,43 +1,44 @@
 using UnityEngine;
-using Blobs.Core;
 using Blobs.Blobs;
+using Blobs.Interfaces;
+using Blobs.Presenters;
 
 namespace Blobs.Commands
 {
     /// <summary>
     /// Command for executing and undoing blob merges.
-    /// Stores state before merge for undo functionality.
+    /// Updated for MVP architecture using interfaces.
     /// </summary>
     public class MergeCommand : ICommand
     {
-        private readonly Blob sourceBlob;
-        private readonly Blob targetBlob;
-        private readonly GridManager gridManager;
+        private readonly IBlobPresenter sourceBlob;
+        private readonly IBlobPresenter targetBlob;
 
         // State before merge (for undo)
         private Vector2Int sourceOriginalPos;
         private Vector2Int targetOriginalPos;
+        private BlobType targetType;
         private BlobColor sourceColor;
         private BlobColor targetColor;
         private bool isExecuted;
 
-        public MergeCommand(Blob source, Blob target, GridManager grid)
+        public MergeCommand(IBlobPresenter source, IBlobPresenter target)
         {
             sourceBlob = source;
             targetBlob = target;
-            gridManager = grid;
 
             // Store original state
-            if (source?.CurrentTile != null)
+            if (source?.Model != null)
             {
-                sourceOriginalPos = source.CurrentTile.GridPosition;
-                sourceColor = source.BlobColorType;
+                sourceOriginalPos = source.Model.GridPosition;
+                sourceColor = source.Model.Color;
             }
 
-            if (target?.CurrentTile != null)
+            if (target?.Model != null)
             {
-                targetOriginalPos = target.CurrentTile.GridPosition;
-                targetColor = target.BlobColorType;
+                targetOriginalPos = target.Model.GridPosition;
+                targetColor = target.Model.Color;
+                targetType = target.Model.Type;
             }
         }
 
@@ -57,7 +58,7 @@ namespace Blobs.Commands
 
             Debug.Log($"[MergeCommand] Executing merge: {sourceColor} -> {targetColor}");
             
-            sourceBlob.ExecuteMerge(targetBlob, gridManager);
+            sourceBlob.ExecuteMerge(targetBlob);
             isExecuted = true;
         }
 
@@ -71,19 +72,21 @@ namespace Blobs.Commands
 
             Debug.Log($"[MergeCommand] Undoing merge");
 
-            // Restore source blob to original position
-            Tile sourceOriginalTile = gridManager.GetTile(sourceOriginalPos);
-            if (sourceOriginalTile != null && sourceBlob != null)
+            IGridPresenter grid = ServiceLocator.Grid;
+            if (grid == null)
             {
-                sourceBlob.MoveTo(sourceOriginalTile);
+                Debug.LogWarning("[MergeCommand] Grid not found for undo");
+                return;
+            }
+
+            // Move source blob back to original position
+            if (sourceBlob != null)
+            {
+                sourceBlob.MoveTo(sourceOriginalPos);
             }
 
             // Recreate target blob at original position
-            Tile targetOriginalTile = gridManager.GetTile(targetOriginalPos);
-            if (targetOriginalTile != null)
-            {
-                gridManager.SpawnBlob(targetOriginalPos, targetColor);
-            }
+            grid.SpawnBlob(targetOriginalPos, targetType, targetColor);
 
             isExecuted = false;
         }

@@ -1,11 +1,13 @@
 using UnityEngine;
-using Blobs.Blobs;
+using Blobs.Interfaces;
+using Blobs.Presenters;
+using Blobs.Views;
 
 namespace Blobs.Core
 {
     /// <summary>
     /// Manages blob tooltips using Simple Tooltip plugin.
-    /// Auto-instantiates tooltip prefab on Awake - no manual setup needed.
+    /// Updated for MVP architecture.
     /// </summary>
     public class BlobTooltipManager : MonoBehaviour
     {
@@ -13,19 +15,21 @@ namespace Blobs.Core
 
         [Header("Settings")]
         [SerializeField] private float hoverDelay = 0.3f;
-        [SerializeField] private LayerMask blobLayer = -1; // Default: all layers
+        [SerializeField] private LayerMask blobLayer = -1;
 
         private STController tooltipController;
         private SimpleTooltipStyle tooltipStyle;
         private Camera mainCamera;
         
-        private Blob currentHoveredBlob;
+        private BlobView currentHoveredBlob;
         private float hoverTimer;
         private bool isShowingTooltip;
 
+        // MVP reference
+        private IGamePresenter Game => ServiceLocator.Game;
+
         private void Awake()
         {
-            // Singleton
             if (Instance != null && Instance != this)
             {
                 Destroy(gameObject);
@@ -54,7 +58,8 @@ namespace Blobs.Core
 
         private void Update()
         {
-            if (GameManager.Instance?.CurrentState != GameState.Playing)
+            // Use ServiceLocator instead of GameManager.Instance
+            if (Game?.CurrentState != GameState.Playing)
             {
                 HideTooltip();
                 return;
@@ -65,13 +70,15 @@ namespace Blobs.Core
 
         private void DetectBlobUnderMouse()
         {
+            if (mainCamera == null) return;
+
             Vector2 mousePos = mainCamera.ScreenToWorldPoint(UnityEngine.Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, 0f, blobLayer);
 
-            Blob hoveredBlob = null;
+            BlobView hoveredBlob = null;
             if (hit.collider != null)
             {
-                hoveredBlob = hit.collider.GetComponent<Blob>();
+                hoveredBlob = hit.collider.GetComponent<BlobView>();
             }
 
             // Check if hover changed
@@ -107,7 +114,7 @@ namespace Blobs.Core
             }
         }
 
-        private void ShowTooltipForBlob(Blob blob)
+        private void ShowTooltipForBlob(BlobView blob)
         {
             if (tooltipController == null || tooltipStyle == null)
                 return;
@@ -143,9 +150,9 @@ namespace Blobs.Core
         }
 
         /// <summary>
-        /// Force show tooltip for a specific blob (useful for tutorials)
+        /// Force show tooltip for a specific blob view
         /// </summary>
-        public void ForceShowTooltip(Blob blob)
+        public void ForceShowTooltip(BlobView blob)
         {
             if (blob == null) return;
             currentHoveredBlob = blob;

@@ -1,30 +1,28 @@
 using UnityEngine;
-using Blobs.Blobs;
+using Blobs.Core;
 
-namespace Blobs.Core
+namespace Blobs.Views
 {
-    public class Tile : MonoBehaviour
+    /// <summary>
+    /// View component for tile visual representation.
+    /// Handles only visual concerns: colors, highlights.
+    /// </summary>
+    public class TileView : MonoBehaviour
     {
-        [Header("Position")]
-        [SerializeField] private Vector2Int gridPosition;
-        
-        [Header("Type")]
-        [SerializeField] private TileType tileType = TileType.Normal;
-        
         [Header("Visual")]
         [SerializeField] private SpriteRenderer spriteRenderer;
+
+        [Header("Colors")]
         [SerializeField] private Color normalColor = new Color(0.3f, 0.25f, 0.4f, 1f);
         [SerializeField] private Color highlightColor = new Color(0.4f, 0.35f, 0.5f, 1f);
         [SerializeField] private Color goalColor = new Color(0.4f, 0.5f, 0.3f, 1f);
         [SerializeField] private Color blockedColor = new Color(0.2f, 0.15f, 0.25f, 1f);
+        [SerializeField] private Color iceColor = new Color(0.6f, 0.8f, 0.9f, 1f);
+        [SerializeField] private Color stickyColor = new Color(0.6f, 0.4f, 0.3f, 1f);
 
-        private Blob currentBlob;
+        private TileType currentType = TileType.Normal;
 
-        public Vector2Int GridPosition => gridPosition;
-        public Blob CurrentBlob => currentBlob;
-        public bool IsOccupied => currentBlob != null;
-        public TileType Type => tileType;
-        public bool IsBlocked => tileType == TileType.Blocked;
+        public Vector2Int GridPosition { get; private set; }
 
         private void Awake()
         {
@@ -34,14 +32,14 @@ namespace Blobs.Core
 
         public void Initialize(Vector2Int position)
         {
-            gridPosition = position;
+            GridPosition = position;
             gameObject.name = $"Tile_{position.x}_{position.y}";
             UpdateVisual();
         }
 
         public void SetTileType(TileType type)
         {
-            tileType = type;
+            currentType = type;
             UpdateVisual();
         }
 
@@ -49,29 +47,15 @@ namespace Blobs.Core
         {
             if (spriteRenderer == null) return;
 
-            spriteRenderer.color = tileType switch
+            spriteRenderer.color = currentType switch
             {
                 TileType.Normal => normalColor,
                 TileType.Blocked => blockedColor,
                 TileType.Goal => goalColor,
-                TileType.Ice => new Color(0.6f, 0.8f, 0.9f, 1f),
-                TileType.Sticky => new Color(0.6f, 0.4f, 0.3f, 1f),
+                TileType.Ice => iceColor,
+                TileType.Sticky => stickyColor,
                 _ => normalColor
             };
-        }
-
-        public void SetBlob(Blob blob)
-        {
-            currentBlob = blob;
-            if (blob != null)
-            {
-                blob.SetCurrentTile(this);
-            }
-        }
-
-        public void ClearBlob()
-        {
-            currentBlob = null;
         }
 
         public void Highlight()
@@ -80,7 +64,7 @@ namespace Blobs.Core
                 spriteRenderer.color = highlightColor;
         }
 
-        public void SetNormalColor()
+        public void ResetColor()
         {
             UpdateVisual();
         }
