@@ -3,13 +3,14 @@ using Blobs.Core;
 using Blobs.Commands;
 using Blobs.Input;
 using Blobs.Presenters;
+using Blobs.Services;
 using Blobs.Views;
 
 namespace Blobs
 {
     /// <summary>
     /// MVP Scene Setup - Clean architecture bootstrapper.
-    /// Creates all MVP components without legacy managers.
+    /// Creates all MVP components and SRP-compliant services.
     /// </summary>
     [DefaultExecutionOrder(-100)]
     public class MVPSceneSetup : MonoBehaviour
@@ -36,6 +37,12 @@ namespace Blobs
         private GridView gridView;
         private InputPresenter inputPresenter;
         private CommandManager commandManager;
+        
+        // SRP Services
+        private InputService inputService;
+        private SelectionService selectionService;
+        private MoveService moveService;
+        private FeedbackService feedbackService;
 
         private void Awake()
         {
@@ -52,6 +59,7 @@ namespace Blobs
 
             SetupCamera();
             CreateMVPComponents();
+            CreateServices();
             CreateInputAndCommands();
             
             if (createUI)
@@ -62,7 +70,7 @@ namespace Blobs
             WireReferences();
 
             Debug.Log("[MVPSceneSetup] === MVP SETUP COMPLETE ===");
-            Debug.Log("[MVPSceneSetup] Architecture: Model-View-Presenter + SOLID");
+            Debug.Log("[MVPSceneSetup] Architecture: Model-View-Presenter + SOLID + SRP Services");
             Debug.Log("[MVPSceneSetup] Controls: Click blob to select, Arrow keys/WASD to move, Z=Undo, Y=Redo");
         }
 
@@ -111,6 +119,46 @@ namespace Blobs
             }
 
             Debug.Log("[MVPSceneSetup] MVP Components created: GamePresenter, GridPresenter, GridView");
+        }
+        
+        private void CreateServices()
+        {
+            // Create SRP-compliant services
+            GameObject servicesObj = new GameObject("Services");
+            
+            // InputService - handles input polling only
+            inputService = FindObjectOfType<InputService>();
+            if (inputService == null)
+            {
+                inputService = servicesObj.AddComponent<InputService>();
+            }
+            ServiceLocator.RegisterInput(inputService);
+            
+            // SelectionService - handles selection state and hit testing
+            selectionService = FindObjectOfType<SelectionService>();
+            if (selectionService == null)
+            {
+                selectionService = servicesObj.AddComponent<SelectionService>();
+            }
+            ServiceLocator.RegisterSelection(selectionService);
+            
+            // MoveService - handles move finding and validation
+            moveService = FindObjectOfType<MoveService>();
+            if (moveService == null)
+            {
+                moveService = servicesObj.AddComponent<MoveService>();
+            }
+            ServiceLocator.RegisterMove(moveService);
+            
+            // FeedbackService - handles UI feedback
+            feedbackService = FindObjectOfType<FeedbackService>();
+            if (feedbackService == null)
+            {
+                feedbackService = servicesObj.AddComponent<FeedbackService>();
+            }
+            ServiceLocator.RegisterFeedback(feedbackService);
+            
+            Debug.Log("[MVPSceneSetup] SRP Services created: InputService, SelectionService, MoveService, FeedbackService");
         }
 
         private void WireGridViewPrefabs(GridView view)

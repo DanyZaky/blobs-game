@@ -2,12 +2,14 @@ using UnityEngine;
 using Blobs.Core;
 using Blobs.Interfaces;
 using Blobs.Models;
+using Blobs.Services;
 
 namespace Blobs.Presenters
 {
     /// <summary>
     /// Presenter for game state logic.
     /// Manages game state, scoring, and win conditions.
+    /// Subscribes to MoveService events for game progression (SRP compliance).
     /// </summary>
     public class GamePresenter : MonoBehaviour, IGamePresenter
     {
@@ -16,6 +18,9 @@ namespace Blobs.Presenters
         [SerializeField] private LevelData startingLevel;
 
         private GameStateModel _model;
+        
+        // Service reference for event subscription
+        private IMoveService MoveService => ServiceLocator.Move;
 
         public GameState CurrentState => _model?.CurrentState ?? GameState.Playing;
         public int MoveCount => _model?.MoveCount ?? 0;
@@ -41,6 +46,47 @@ namespace Blobs.Presenters
         private void Start()
         {
             InitializeGame();
+            SubscribeToMoveService();
+        }
+        
+        /// <summary>
+        /// Subscribe to MoveService events for game progression.
+        /// This decouples game logic from input handling (SRP).
+        /// </summary>
+        private void SubscribeToMoveService()
+        {
+            // Wait for services to be registered
+            StartCoroutine(WaitAndSubscribeToMoveService());
+        }
+        
+        private System.Collections.IEnumerator WaitAndSubscribeToMoveService()
+        {
+            // Wait until MoveService is available
+            while (MoveService == null)
+            {
+                yield return null;
+            }
+            
+            MoveService.OnMergeExecuted += HandleMergeExecuted;
+            Debug.Log("[GamePresenter] Subscribed to MoveService events");
+        }
+        
+        private void HandleMergeExecuted(IBlobPresenter source, IBlobPresenter target)
+        {
+            // Increment move count
+            IncrementMoveCount();
+            
+            // Check win condition
+            CheckWinCondition();
+        }
+        
+        private void OnDestroy()
+        {
+            // Unsubscribe from events
+            if (MoveService != null)
+            {
+                MoveService.OnMergeExecuted -= HandleMergeExecuted;
+            }
         }
 
         public void InitializeGame()
