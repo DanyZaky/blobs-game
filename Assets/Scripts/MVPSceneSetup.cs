@@ -37,7 +37,7 @@ namespace Blobs
         private GridView gridView;
         private InputPresenter inputPresenter;
         private CommandManager commandManager;
-        
+
         // SRP Services
         private InputService inputService;
         private SelectionService selectionService;
@@ -61,7 +61,7 @@ namespace Blobs
             CreateMVPComponents();
             CreateServices();
             CreateInputAndCommands();
-            
+
             if (createUI)
             {
                 CreateUI();
@@ -101,7 +101,7 @@ namespace Blobs
                 GameObject obj = new GameObject("GridPresenter");
                 gridView = obj.AddComponent<GridView>();
                 gridPresenter = obj.AddComponent<GridPresenter>();
-                
+
                 // Wire prefabs to GridView
                 WireGridViewPrefabs(gridView);
             }
@@ -120,12 +120,12 @@ namespace Blobs
 
             Debug.Log("[MVPSceneSetup] MVP Components created: GamePresenter, GridPresenter, GridView");
         }
-        
+
         private void CreateServices()
         {
             // Create SRP-compliant services
             GameObject servicesObj = new GameObject("Services");
-            
+
             // InputService - handles input polling only
             inputService = FindObjectOfType<InputService>();
             if (inputService == null)
@@ -133,7 +133,7 @@ namespace Blobs
                 inputService = servicesObj.AddComponent<InputService>();
             }
             ServiceLocator.RegisterInput(inputService);
-            
+
             // SelectionService - handles selection state and hit testing
             selectionService = FindObjectOfType<SelectionService>();
             if (selectionService == null)
@@ -141,7 +141,7 @@ namespace Blobs
                 selectionService = servicesObj.AddComponent<SelectionService>();
             }
             ServiceLocator.RegisterSelection(selectionService);
-            
+
             // MoveService - handles move finding and validation
             moveService = FindObjectOfType<MoveService>();
             if (moveService == null)
@@ -149,7 +149,7 @@ namespace Blobs
                 moveService = servicesObj.AddComponent<MoveService>();
             }
             ServiceLocator.RegisterMove(moveService);
-            
+
             // FeedbackService - handles UI feedback
             feedbackService = FindObjectOfType<FeedbackService>();
             if (feedbackService == null)
@@ -157,7 +157,7 @@ namespace Blobs
                 feedbackService = servicesObj.AddComponent<FeedbackService>();
             }
             ServiceLocator.RegisterFeedback(feedbackService);
-            
+
             Debug.Log("[MVPSceneSetup] SRP Services created: InputService, SelectionService, MoveService, FeedbackService");
         }
 

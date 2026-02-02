@@ -17,42 +17,42 @@ namespace Blobs.Services
             // Self-register to ServiceLocator
             ServiceLocator.RegisterFeedback(this);
         }
-        
+
         public void ShowFeedback(string message)
         {
             UIManager.Instance?.ShowFeedback(message);
         }
-        
+
         public void ShowCannotSelectFeedback(IBlobPresenter blob)
         {
             UIManager.Instance?.ShowCannotSelectFeedback();
             blob?.PlayInvalidMoveEffect();
         }
-        
+
         public void ShowSameColorFeedback(IBlobPresenter blob)
         {
             UIManager.Instance?.ShowSameColorFeedback();
             blob?.PlayInvalidMoveEffect();
         }
-        
+
         public void ShowCannotMergeFeedback(IBlobPresenter blob)
         {
             UIManager.Instance?.ShowCannotMergeFeedback();
             blob?.PlayInvalidMoveEffect();
         }
-        
+
         public void ShowNoTargetFeedback(IBlobPresenter blob)
         {
             UIManager.Instance?.ShowNoMoveFeedback();
             blob?.PlayInvalidMoveEffect();
         }
-        
+
         public void ShowPathBlockedFeedback(IBlobPresenter blob)
         {
             UIManager.Instance?.ShowBlockedFeedback();
             blob?.PlayInvalidMoveEffect();
         }
-        
+
         public void ShowMoveValidationFeedback(IBlobPresenter blob, MoveValidationResult result)
         {
             switch (result)

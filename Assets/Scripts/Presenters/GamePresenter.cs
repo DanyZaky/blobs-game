@@ -18,7 +18,7 @@ namespace Blobs.Presenters
         [SerializeField] private LevelData startingLevel;
 
         private GameStateModel _model;
-        
+
         // Service reference for event subscription
         private IMoveService MoveService => ServiceLocator.Move;
 
@@ -48,7 +48,7 @@ namespace Blobs.Presenters
             InitializeGame();
             SubscribeToMoveService();
         }
-        
+
         /// <summary>
         /// Subscribe to MoveService events for game progression.
         /// This decouples game logic from input handling (SRP).
@@ -58,7 +58,7 @@ namespace Blobs.Presenters
             // Wait for services to be registered
             StartCoroutine(WaitAndSubscribeToMoveService());
         }
-        
+
         private System.Collections.IEnumerator WaitAndSubscribeToMoveService()
         {
             // Wait until MoveService is available
@@ -66,20 +66,20 @@ namespace Blobs.Presenters
             {
                 yield return null;
             }
-            
+
             MoveService.OnMergeExecuted += HandleMergeExecuted;
             Debug.Log("[GamePresenter] Subscribed to MoveService events");
         }
-        
+
         private void HandleMergeExecuted(IBlobPresenter source, IBlobPresenter target)
         {
             // Increment move count
             IncrementMoveCount();
-            
+
             // Check win condition
             CheckWinCondition();
         }
-        
+
         private void OnDestroy()
         {
             // Unsubscribe from events

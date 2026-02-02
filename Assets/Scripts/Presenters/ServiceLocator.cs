@@ -13,7 +13,7 @@ namespace Blobs.Presenters
         // Presenters
         private static IGamePresenter _game;
         private static IGridPresenter _grid;
-        
+
         // Services (SRP-compliant)
         private static IInputService _input;
         private static ISelectionService _selection;
@@ -23,7 +23,7 @@ namespace Blobs.Presenters
         // Presenter accessors
         public static IGamePresenter Game => _game;
         public static IGridPresenter Grid => _grid;
-        
+
         // Service accessors
         public static IInputService Input => _input;
         public static ISelectionService Selection => _selection;
@@ -40,23 +40,23 @@ namespace Blobs.Presenters
         {
             _grid = grid;
         }
-        
+
         // Service registration
         public static void RegisterInput(IInputService input)
         {
             _input = input;
         }
-        
+
         public static void RegisterSelection(ISelectionService selection)
         {
             _selection = selection;
         }
-        
+
         public static void RegisterMove(IMoveService move)
         {
             _move = move;
         }
-        
+
         public static void RegisterFeedback(IFeedbackService feedback)
         {
             _feedback = feedback;
@@ -73,8 +73,8 @@ namespace Blobs.Presenters
         }
 
         public static bool IsInitialized => _game != null && _grid != null;
-        
-        public static bool AreServicesInitialized => 
+
+        public static bool AreServicesInitialized =>
             _input != null && _selection != null && _move != null && _feedback != null;
     }
 }

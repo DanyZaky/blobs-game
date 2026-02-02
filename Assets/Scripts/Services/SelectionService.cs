@@ -14,26 +14,26 @@ namespace Blobs.Services
     public class SelectionService : MonoBehaviour, ISelectionService
     {
         private IBlobPresenter selectedBlob;
-        
+
         // Service reference
         private IGridPresenter Grid => ServiceLocator.Grid;
-        
+
         private void Awake()
         {
             // Self-register to ServiceLocator
             ServiceLocator.RegisterSelection(this);
         }
-        
+
         public IBlobPresenter SelectedBlob => selectedBlob;
-        
+
         // Events
         public event Action<IBlobPresenter> OnSelectionChanged;
         public event Action<IBlobPresenter> OnInvalidSelection;
-        
+
         public void HandleClickAt(Vector2 worldPosition)
         {
             RaycastHit2D hit = Physics2D.Raycast(worldPosition, Vector2.zero);
-            
+
             if (hit.collider != null)
             {
                 // Try to get BlobView from collider
@@ -48,18 +48,18 @@ namespace Blobs.Services
                     }
                 }
             }
-            
+
             // Clicked empty space - deselect if something selected
             if (selectedBlob != null)
             {
                 Deselect();
             }
         }
-        
+
         private IBlobPresenter GetPresenterForView(BlobView view)
         {
             if (Grid == null) return null;
-            
+
             foreach (var blob in Grid.GetAllBlobs())
             {
                 if (blob.View == view as IBlobView)
@@ -69,7 +69,7 @@ namespace Blobs.Services
             }
             return null;
         }
-        
+
         private void HandleBlobClick(IBlobPresenter clickedBlob)
         {
             if (selectedBlob == null)
@@ -98,34 +98,34 @@ namespace Blobs.Services
                 OnSelectionChanged?.Invoke(clickedBlob);
             }
         }
-        
+
         public void Select(IBlobPresenter blob)
         {
             if (blob == null) return;
-            
+
             // Deselect previous if any
             if (selectedBlob != null)
             {
                 selectedBlob.Deselect();
             }
-            
+
             selectedBlob = blob;
             selectedBlob.Select();
-            
+
             OnSelectionChanged?.Invoke(selectedBlob);
         }
-        
+
         public void Deselect()
         {
             if (selectedBlob != null)
             {
                 selectedBlob.Deselect();
                 selectedBlob = null;
-                
+
                 OnSelectionChanged?.Invoke(null);
             }
         }
-        
+
         public void ClearSelection()
         {
             if (selectedBlob != null)
