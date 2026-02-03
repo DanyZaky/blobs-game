@@ -2031,7 +2031,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridPresenter: {fileID: 60287186}
-  startingLevel: {fileID: 11400000, guid: e93a613598ece7242a6542895cd7a39f, type: 2}
+  startingLevel: {fileID: 11400000, guid: 327a0a6174913a342aabb7b8813bd0f2, type: 2}
 --- !u!4 &1059526085
 Transform:
   m_ObjectHideFlags: 0
