@@ -12,29 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1b2c3d4e5f67890abcdef1234567890, type: 3}
   m_Name: Level_01_Tutorial
   m_EditorClassIdentifier: 
-  levelNumber: 1
-  levelName: Tutorial Level
-  width: 5
-  height: 3
-  minMoves: 3
-  baseScore: 1000
+  levelNumber: 0
+  levelName: Tutorial - Basic Merge
+  width: 3
+  height: 1
+  minMoves: 1
+  baseScore: 500
   movePenalty: 50
-  starThresholds: 2c0100005802000084030000
+  starThresholds: f4010000c800000064000000
   isTutorial: 1
   tutorialMessages:
-  - Click a blob to select it!
-  - Use arrow keys to merge with different colors
-  - Match the Flag with same color to win!
+  - Click the Pink blob to select it
+  - Press RIGHT arrow to merge with the Flag
+  - Match same color blob with Flag to win!
   blobs:
-  - position: {x: 0, y: 1}
+  - position: {x: 0, y: 0}
     type: 0
     color: 0
     size: 1
-  - position: {x: 2, y: 1}
-    type: 0
-    color: 1
-    size: 1
-  - position: {x: 4, y: 1}
+  - position: {x: 2, y: 0}
     type: 3
     color: 0
     size: 1
