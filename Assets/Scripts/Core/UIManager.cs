@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
@@ -16,6 +17,7 @@ namespace Blobs.Core
 
         [Header("Feedback Text")]
         [SerializeField] private TextMeshProUGUI feedbackText;
+        [SerializeField] private TextMeshProUGUI gameplayScoreText;
         
         [Header("Animation Settings")]
         [SerializeField] private float feedbackDuration = 1.5f;
@@ -37,6 +39,12 @@ namespace Blobs.Core
         [SerializeField] private UnityEngine.UI.Button nextLevelButton;
         [SerializeField] private UnityEngine.UI.Button retryButton;
         [SerializeField] private UnityEngine.UI.Button menuButton;
+
+        [SerializeField] private Button pauseButton;
+        [SerializeField] private GameObject pausePanel;
+        [SerializeField] private Button resumeButton;
+        [SerializeField] private Button retryPauseButton;
+        [SerializeField] private Button menuPauseButton;
 
         private Sequence currentFeedbackSequence;
         private Vector3 feedbackOriginalPosition;
@@ -86,20 +94,40 @@ namespace Blobs.Core
             if (retryButton != null) retryButton.onClick.AddListener(OnRetryClicked);
             if (menuButton != null) menuButton.onClick.AddListener(OnMenuClicked);
             if (undoButton != null) undoButton.onClick.AddListener(OnUndoClicked);
+
+            // Pause buttons
+            if (pauseButton != null) pauseButton.onClick.AddListener(OnPauseClicked);
+            if (resumeButton != null) resumeButton.onClick.AddListener(OnResumeClicked);
+            if (retryPauseButton != null) retryPauseButton.onClick.AddListener(OnRetryClicked);
+            if (menuPauseButton != null) menuPauseButton.onClick.AddListener(OnMenuClicked);
         }
 
         private void OnDestroy()
         {
             if (Instance == this)
                 Instance = null;
+            
+            // Ensure time scale is reset just in case
+            Time.timeScale = 1f;
 
             currentFeedbackSequence?.Kill();
         }
 
         #region Button Handlers
 
+        private void OnPauseClicked()
+        {
+            ShowPausePanel();
+        }
+
+        private void OnResumeClicked()
+        {
+            HidePausePanel();
+        }
+
         private void OnNextLevelClicked()
         {
+            Time.timeScale = 1f; // Ensure time scale is normal
             // Get current level index from PlayerPrefs
             int currentIndex = PlayerPrefs.GetInt("SelectedLevel", 0);
             int nextIndex = currentIndex + 1;
@@ -129,12 +157,14 @@ namespace Blobs.Core
         private void OnRetryClicked()
         {
             Debug.Log("[UIManager] Retrying level");
+            Time.timeScale = 1f; // Reset time scale
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         private void OnMenuClicked()
         {
             Debug.Log("[UIManager] Returning to menu");
+            Time.timeScale = 1f; // Reset time scale
             SceneManager.LoadScene("Menu");
         }
 
@@ -156,6 +186,75 @@ namespace Blobs.Core
 
             CommandManager.Instance.Undo();
             Debug.Log("[UIManager] Undo executed successfully");
+        }
+
+        #endregion
+
+        #region Pause Panel
+
+        private void ShowPausePanel()
+        {
+            if (pausePanel == null) return;
+
+            pausePanel.SetActive(true);
+            Time.timeScale = 0f;
+
+            // Animate
+            if (pausePanel.GetComponent<CanvasGroup>() == null)
+                pausePanel.AddComponent<CanvasGroup>();
+            
+            CanvasGroup cg = pausePanel.GetComponent<CanvasGroup>();
+            cg.alpha = 0f;
+            cg.DOFade(1f, 0.3f).SetUpdate(true); // SetUpdate(true) ignores timeScale
+
+            RectTransform rt = pausePanel.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.localScale = Vector3.one * 0.9f;
+                rt.DOScale(1f, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
+            }
+        }
+
+        private void HidePausePanel()
+        {
+            if (pausePanel == null) return;
+
+            Time.timeScale = 1f;
+
+            // Animate
+            CanvasGroup cg = pausePanel.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.DOFade(0f, 0.2f).SetUpdate(true).OnComplete(() =>
+                {
+                    pausePanel.SetActive(false);
+                });
+            }
+            else
+            {
+                pausePanel.SetActive(false);
+            }
+        }
+
+        #endregion
+
+        #region Gameplay Score
+
+        /// <summary>
+        /// Update the gameplay score display with animation.
+        /// </summary>
+        public void UpdateScore(int newScore)
+        {
+            if (gameplayScoreText == null) return;
+
+            // Simple punch animation
+            gameplayScoreText.text = $"Score: {newScore}";
+            
+            // Kill existing tween on the transform to avoid conflicts
+            gameplayScoreText.transform.DOKill(true);
+            
+            // Punch scale effect
+            gameplayScoreText.transform.DOPunchScale(Vector3.one * 0.2f, 0.3f, 10, 1f);
         }
 
         #endregion

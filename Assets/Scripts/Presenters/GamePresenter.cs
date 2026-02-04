@@ -74,6 +74,7 @@ namespace Blobs.Presenters
         {
             undoCount++;
             Debug.Log($"[GamePresenter] Undo count: {undoCount}");
+            UpdateScoreUI();
         }
 
         private System.Collections.IEnumerator WaitAndSubscribeToMoveService()
@@ -188,24 +189,40 @@ namespace Blobs.Presenters
         public void IncrementMoveCount()
         {
             _model.IncrementMoveCount();
+            UpdateScoreUI();
         }
 
         public void AddScore(int points)
         {
-            _model.AddScore(points);
+            _model.AddScore(points); // Legacy, handled by CalculateCurrentScore now
+        }
+
+        private void UpdateScoreUI()
+        {
+            if (startingLevel == null) return;
+            
+            int currentScore = CalculateCurrentScore();
+            UIManager.Instance?.UpdateScore(currentScore);
+        }
+
+        private int CalculateCurrentScore()
+        {
+            if (startingLevel == null) return 0;
+            
+            int baseScore = startingLevel.baseScore;
+            int movePenalty = startingLevel.movePenalty * MoveCount;
+            int undoPenaltyTotal = startingLevel.undoPenalty * undoCount;
+            int score = Mathf.Max(0, baseScore - movePenalty - undoPenaltyTotal);
+            return score;
         }
 
         private void CalculateFinalScore()
         {
             if (startingLevel == null) return;
 
-            int baseScore = startingLevel.baseScore;
-            int movePenalty = startingLevel.movePenalty * MoveCount;
-            int undoPenaltyTotal = startingLevel.undoPenalty * undoCount;
-            int finalScore = Mathf.Max(0, baseScore - movePenalty - undoPenaltyTotal);
-
+            int finalScore = CalculateCurrentScore();
             _model.AddScore(finalScore);
-            Debug.Log($"[GamePresenter] Final Score: {finalScore} (Base: {baseScore}, MovePenalty: {movePenalty}, UndoPenalty: {undoPenaltyTotal})");
+            Debug.Log($"[GamePresenter] Final Score: {finalScore}");
 
             // Calculate stars based on undo count
             int stars = CalculateStars();
