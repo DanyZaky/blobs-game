@@ -96,6 +96,14 @@ namespace Blobs.Presenters
             if (gridPresenter == null)
                 gridPresenter = FindObjectOfType<GridPresenter>();
 
+            // Check if level data was passed from Main Menu
+            if (MainMenuController.SelectedLevelData != null)
+            {
+                startingLevel = MainMenuController.SelectedLevelData;
+                // Optional: Clear after use to prevent stale data if playing from editor later
+                // MainMenuController.ClearSelectedLevelData(); 
+            }
+
             if (startingLevel != null && gridPresenter != null)
             {
                 gridPresenter.LoadLevel(startingLevel);
