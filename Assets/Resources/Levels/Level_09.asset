@@ -19,6 +19,7 @@ MonoBehaviour:
   minMoves: 5
   baseScore: 1800
   movePenalty: 110
+  undoPenalty: 100
   starThresholds: 08070000e803000096000000
   isTutorial: 0
   tutorialMessages: []
@@ -39,12 +40,12 @@ MonoBehaviour:
     type: 0
     color: 2
     size: 1
-  - position: {x: 3, y: 2}
-    type: 0
-    color: 0
-    size: 1
   - position: {x: 5, y: 3}
     type: 3
     color: 2
+    size: 1
+  - position: {x: 3, y: 2}
+    type: 5
+    color: 0
     size: 1
   tiles: []
