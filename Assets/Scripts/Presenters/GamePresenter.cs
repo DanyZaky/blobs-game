@@ -134,6 +134,10 @@ namespace Blobs.Presenters
                 _model.SetLevelNumber(startingLevel.levelNumber);
             }
 
+            // Play gameplay BGM
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlayBGM("gameplay");
+
             Debug.Log("[GamePresenter] Game initialized");
         }
 

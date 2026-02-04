@@ -99,12 +99,21 @@ namespace Blobs.Services
             if (validation != MoveValidationResult.Valid)
             {
                 Debug.Log($"[MoveService] Merge validation failed: {validation}");
+                
+                // Play miss SFX
+                if (AudioManager.Instance != null)
+                    AudioManager.Instance.PlaySFX("miss");
+                
                 OnMergeAttemptFailed?.Invoke(source, validation);
                 return;
             }
 
             // Execute the merge VIA CommandManager for undo support
             Debug.Log($"[MoveService] Executing merge via CommandManager: {source.Model.Color} -> {target.Model.Color}");
+            
+            // Play correct SFX
+            if (AudioManager.Instance != null)
+                AudioManager.Instance.PlaySFX("correct");
             
             if (CommandManager.Instance != null)
             {

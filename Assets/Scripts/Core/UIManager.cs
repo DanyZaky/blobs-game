@@ -4,6 +4,7 @@ using TMPro;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
 using Blobs.Commands;
+using Blobs.Services;
 
 namespace Blobs.Core
 {
@@ -117,11 +118,13 @@ namespace Blobs.Core
 
         private void OnPauseClicked()
         {
+            AudioManager.Instance?.PlaySFX("ui button");
             ShowPausePanel();
         }
 
         private void OnResumeClicked()
         {
+            AudioManager.Instance?.PlaySFX("ui button");
             HidePausePanel();
         }
 
@@ -156,6 +159,7 @@ namespace Blobs.Core
 
         private void OnRetryClicked()
         {
+            AudioManager.Instance?.PlaySFX("ui button");
             Debug.Log("[UIManager] Retrying level");
             Time.timeScale = 1f; // Reset time scale
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -163,6 +167,7 @@ namespace Blobs.Core
 
         private void OnMenuClicked()
         {
+            AudioManager.Instance?.PlaySFX("ui button");
             Debug.Log("[UIManager] Returning to menu");
             Time.timeScale = 1f; // Reset time scale
             SceneManager.LoadScene("Menu");
@@ -183,6 +188,9 @@ namespace Blobs.Core
                 Debug.Log("[UIManager] Nothing to undo (CanUndo = false)");
                 return;
             }
+
+            // Play undo SFX
+            AudioManager.Instance?.PlaySFX("undo");
 
             CommandManager.Instance.Undo();
             Debug.Log("[UIManager] Undo executed successfully");
@@ -358,6 +366,10 @@ namespace Blobs.Core
                 Debug.LogWarning("[UIManager] Win panel not assigned!");
                 return;
             }
+
+            // Play win SFX
+            AudioManager.Instance?.PlaySFX("win");
+            AudioManager.Instance?.PlaySFX("win2");
 
             // Update score text
             if (winScoreText != null)

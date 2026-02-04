@@ -115,9 +115,9 @@ namespace Blobs.Core
             RefreshLevelSelectionUI();
 
             // Play menu BGM if available
-            if (AudioManager.Instance != null && AudioManager.Instance.HasClip("bgm_menu"))
+            if (AudioManager.Instance != null && AudioManager.Instance.HasClip("menu"))
             {
-                AudioManager.Instance.PlayBGM("bgm_menu");
+                AudioManager.Instance.PlayBGM("menu");
             }
 
             SetupIdleAnimations();
@@ -467,9 +467,9 @@ namespace Blobs.Core
 
         private void PlayButtonSFX()
         {
-            if (AudioManager.Instance != null && AudioManager.Instance.HasClip("click"))
+            if (AudioManager.Instance != null && AudioManager.Instance.HasClip("ui button"))
             {
-                AudioManager.Instance.PlaySFX("click");
+                AudioManager.Instance.PlaySFX("ui button");
             }
         }
 
