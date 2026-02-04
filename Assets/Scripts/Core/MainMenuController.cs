@@ -43,6 +43,9 @@ namespace Blobs.Core
         [SerializeField] private float buttonHoverDuration = 0.15f;
         [SerializeField] private Ease panelEase = Ease.OutBack;
 
+        [SerializeField] private RectTransform[] ornamentalBlobs;
+        [SerializeField] private RectTransform titleImage;
+
         [Header("Scene Names")]
         [SerializeField] private string gameplaySceneName = "MVPGameplay";
 
@@ -115,6 +118,50 @@ namespace Blobs.Core
             if (AudioManager.Instance != null && AudioManager.Instance.HasClip("bgm_menu"))
             {
                 AudioManager.Instance.PlayBGM("bgm_menu");
+            }
+
+            SetupIdleAnimations();
+        }
+
+        private void SetupIdleAnimations()
+        {
+            // Title Animation (Scale Pulse)
+            if (titleImage != null)
+            {
+                titleImage.DOScale(1.05f, 2f)
+                    .SetLoops(-1, LoopType.Yoyo)
+                    .SetEase(Ease.InOutSine);
+            }
+
+            // Ornamental Blobs Animations (Varied Floating/Scaling)
+            if (ornamentalBlobs != null)
+            {
+                for (int i = 0; i < ornamentalBlobs.Length; i++)
+                {
+                    var blob = ornamentalBlobs[i];
+                    if (blob == null) continue;
+
+                    // Randomize parameters for natural feel
+                    float duration = Random.Range(1.5f, 2.5f);
+                    float delay = Random.Range(0f, 1f);
+                    float moveAmount = Random.Range(15f, 25f);
+                    float scaleAmount = Random.Range(1.05f, 1.15f);
+
+                    // Randomly choose between just floating or floating + scaling
+                    // Use a unique ID for each tween to avoid conflicts if we need to kill them later
+                    
+                    // Floating Y (Up/Down)
+                    blob.DOAnchorPosY(blob.anchoredPosition.y + moveAmount, duration)
+                        .SetLoops(-1, LoopType.Yoyo)
+                        .SetEase(Ease.InOutSine)
+                        .SetDelay(delay);
+
+                    // Subtle Scaling
+                    blob.DOScale(scaleAmount, duration * 1.2f)
+                        .SetLoops(-1, LoopType.Yoyo)
+                        .SetEase(Ease.InOutQuad)
+                        .SetDelay(delay);
+                }
             }
         }
 

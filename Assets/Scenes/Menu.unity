@@ -2302,6 +2302,12 @@ MonoBehaviour:
   buttonHoverScale: 1.1
   buttonHoverDuration: 0.15
   panelEase: 27
+  ornamentalBlobs:
+  - {fileID: 1685825644}
+  - {fileID: 178008004}
+  - {fileID: 1121153291}
+  - {fileID: 2124384740}
+  titleImage: {fileID: 40126983}
   gameplaySceneName: MVPGameplay
   allLevels:
   - {fileID: 11400000, guid: 4b312f14f178a1a4cbbe3a571be493ab, type: 2}
