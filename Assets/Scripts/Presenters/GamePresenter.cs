@@ -207,8 +207,8 @@ namespace Blobs.Presenters
             _model.AddScore(finalScore);
             Debug.Log($"[GamePresenter] Final Score: {finalScore} (Base: {baseScore}, MovePenalty: {movePenalty}, UndoPenalty: {undoPenaltyTotal})");
 
-            // Calculate stars
-            int stars = CalculateStars(finalScore);
+            // Calculate stars based on undo count
+            int stars = CalculateStars();
 
             // Save progress
             int levelIndex = startingLevel.levelNumber - 1; // levelNumber is 1-indexed
@@ -222,25 +222,22 @@ namespace Blobs.Presenters
             }
         }
 
-        private int CalculateStars(int score)
+        private int CalculateStars()
         {
-            if (startingLevel == null || startingLevel.starThresholds == null)
+            // Star calculation based purely on undo count
+            // 0 undos = 3 stars
+            // 1-2 undos = 2 stars
+            // 3-4 undos = 1 star
+            // 5+ undos = 0 stars
+            
+            if (undoCount == 0)
+                return 3;
+            else if (undoCount <= 2)
+                return 2;
+            else if (undoCount <= 4)
                 return 1;
-
-            int stars = 0;
-            int[] thresholds = startingLevel.starThresholds;
-
-            // Count how many thresholds are met
-            for (int i = 0; i < thresholds.Length; i++)
-            {
-                if (score >= thresholds[i])
-                {
-                    stars = i + 1;
-                }
-            }
-
-            // Ensure at least 1 star for completing
-            return Mathf.Max(1, stars);
+            else
+                return 0;
         }
 
         public void LoadLevel(LevelData level)

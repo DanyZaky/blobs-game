@@ -62,6 +62,22 @@ namespace Blobs.Core
         private void Start()
         {
             SetupButtonListeners();
+            UpdateUndoButtonState();
+        }
+
+        private void Update()
+        {
+            // Keep undo button state in sync
+            UpdateUndoButtonState();
+        }
+
+        private void UpdateUndoButtonState()
+        {
+            if (undoButton != null)
+            {
+                bool canUndo = CommandManager.Instance != null && CommandManager.Instance.CanUndo;
+                undoButton.interactable = canUndo;
+            }
         }
 
         private void SetupButtonListeners()
@@ -124,10 +140,22 @@ namespace Blobs.Core
 
         private void OnUndoClicked()
         {
-            if (CommandManager.Instance != null && CommandManager.Instance.CanUndo)
+            Debug.Log("[UIManager] Undo button clicked!");
+            
+            if (CommandManager.Instance == null)
             {
-                CommandManager.Instance.Undo();
+                Debug.LogWarning("[UIManager] CommandManager.Instance is null!");
+                return;
             }
+
+            if (!CommandManager.Instance.CanUndo)
+            {
+                Debug.Log("[UIManager] Nothing to undo (CanUndo = false)");
+                return;
+            }
+
+            CommandManager.Instance.Undo();
+            Debug.Log("[UIManager] Undo executed successfully");
         }
 
         #endregion

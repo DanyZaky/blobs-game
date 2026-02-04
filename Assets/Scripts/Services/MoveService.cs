@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using Blobs.Interfaces;
 using Blobs.Presenters;
+using Blobs.Commands;
 
 namespace Blobs.Services
 {
@@ -102,9 +103,20 @@ namespace Blobs.Services
                 return;
             }
 
-            // Execute the merge
-            Debug.Log($"[MoveService] Executing merge: {source.Model.Color} -> {target.Model.Color}");
-            source.ExecuteMerge(target);
+            // Execute the merge VIA CommandManager for undo support
+            Debug.Log($"[MoveService] Executing merge via CommandManager: {source.Model.Color} -> {target.Model.Color}");
+            
+            if (CommandManager.Instance != null)
+            {
+                var command = new MergeCommand(source, target);
+                CommandManager.Instance.ExecuteCommand(command);
+            }
+            else
+            {
+                // Fallback: direct execution (no undo)
+                Debug.LogWarning("[MoveService] CommandManager not found, executing directly");
+                source.ExecuteMerge(target);
+            }
 
             // Notify listeners
             OnMergeExecuted?.Invoke(source, target);
