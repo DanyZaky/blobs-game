@@ -54,6 +54,33 @@ namespace Blobs.Core
         /// </summary>
         public static LevelData SelectedLevelData { get; private set; }
 
+        /// <summary>
+        /// Static reference to all levels for UI access.
+        /// </summary>
+        public static LevelData[] AllLevels { get; private set; }
+
+        /// <summary>
+        /// Total number of available levels.
+        /// </summary>
+        public static int TotalLevelCount => AllLevels?.Length ?? 0;
+
+        /// <summary>
+        /// Set the selected level by index and return the level data.
+        /// </summary>
+        public static LevelData SetSelectedLevel(int levelIndex)
+        {
+            if (AllLevels == null || levelIndex < 0 || levelIndex >= AllLevels.Length)
+            {
+                Debug.LogWarning($"[MainMenuController] Invalid level index: {levelIndex}");
+                return null;
+            }
+
+            SelectedLevelData = AllLevels[levelIndex];
+            PlayerPrefs.SetInt("SelectedLevel", levelIndex);
+            PlayerPrefs.Save();
+            return SelectedLevelData;
+        }
+
         #endregion
 
         #region Private Fields
@@ -70,6 +97,9 @@ namespace Blobs.Core
 
         private void Awake()
         {
+            // Set static reference for other scripts to access
+            AllLevels = allLevels;
+
             SetupPanelPositions();
             SetupButtonListeners();
             SetupVolumeSliders();

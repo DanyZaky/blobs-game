@@ -23,6 +23,7 @@ namespace Blobs.Core
         public int minMoves = 5;
         public int baseScore = 1000;
         public int movePenalty = 50;
+        public int undoPenalty = 100;
         [Tooltip("Score thresholds for 1, 2, 3 stars")]
         public int[] starThresholds = new int[] { 300, 600, 900 };
 

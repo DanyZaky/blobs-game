@@ -3,6 +3,7 @@ using Blobs.Core;
 using Blobs.Interfaces;
 using Blobs.Models;
 using Blobs.Services;
+using Blobs.Commands;
 
 namespace Blobs.Presenters
 {
@@ -18,6 +19,7 @@ namespace Blobs.Presenters
         [SerializeField] private LevelData startingLevel;
 
         private GameStateModel _model;
+        private int undoCount = 0;
 
         // Service reference for event subscription
         private IMoveService MoveService => ServiceLocator.Move;
@@ -47,6 +49,7 @@ namespace Blobs.Presenters
         {
             InitializeGame();
             SubscribeToMoveService();
+            SubscribeToCommandManager();
         }
 
         /// <summary>
@@ -57,6 +60,20 @@ namespace Blobs.Presenters
         {
             // Wait for services to be registered
             StartCoroutine(WaitAndSubscribeToMoveService());
+        }
+
+        private void SubscribeToCommandManager()
+        {
+            if (CommandManager.Instance != null)
+            {
+                CommandManager.Instance.OnCommandUndone += HandleUndoPerformed;
+            }
+        }
+
+        private void HandleUndoPerformed()
+        {
+            undoCount++;
+            Debug.Log($"[GamePresenter] Undo count: {undoCount}");
         }
 
         private System.Collections.IEnumerator WaitAndSubscribeToMoveService()
@@ -87,11 +104,17 @@ namespace Blobs.Presenters
             {
                 MoveService.OnMergeExecuted -= HandleMergeExecuted;
             }
+
+            if (CommandManager.Instance != null)
+            {
+                CommandManager.Instance.OnCommandUndone -= HandleUndoPerformed;
+            }
         }
 
         public void InitializeGame()
         {
             _model.Reset();
+            undoCount = 0;
 
             if (gridPresenter == null)
                 gridPresenter = FindObjectOfType<GridPresenter>();
@@ -154,15 +177,11 @@ namespace Blobs.Presenters
 
             int playableCount = gridPresenter.GetPlayableBlobCount();
 
-            if (playableCount <= 0)
+            if (playableCount <= 1)
             {
                 SetGameState(GameState.Win);
                 CalculateFinalScore();
                 Debug.Log("[GamePresenter] 🎉 YOU WIN!");
-            }
-            else if (playableCount == 1)
-            {
-                Debug.Log($"[GamePresenter] Almost there! {playableCount} blob remaining.");
             }
         }
 
@@ -182,10 +201,46 @@ namespace Blobs.Presenters
 
             int baseScore = startingLevel.baseScore;
             int movePenalty = startingLevel.movePenalty * MoveCount;
-            int finalScore = Mathf.Max(0, baseScore - movePenalty);
+            int undoPenaltyTotal = startingLevel.undoPenalty * undoCount;
+            int finalScore = Mathf.Max(0, baseScore - movePenalty - undoPenaltyTotal);
 
             _model.AddScore(finalScore);
-            Debug.Log($"[GamePresenter] Final Score: {finalScore} (Base: {baseScore}, Penalty: {movePenalty})");
+            Debug.Log($"[GamePresenter] Final Score: {finalScore} (Base: {baseScore}, MovePenalty: {movePenalty}, UndoPenalty: {undoPenaltyTotal})");
+
+            // Calculate stars
+            int stars = CalculateStars(finalScore);
+
+            // Save progress
+            int levelIndex = startingLevel.levelNumber - 1; // levelNumber is 1-indexed
+            LevelProgressManager.SetStars(levelIndex, stars);
+            Debug.Log($"[GamePresenter] Saved {stars} stars for level {startingLevel.levelNumber}");
+
+            // Show win panel
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ShowWinPanel(stars, finalScore);
+            }
+        }
+
+        private int CalculateStars(int score)
+        {
+            if (startingLevel == null || startingLevel.starThresholds == null)
+                return 1;
+
+            int stars = 0;
+            int[] thresholds = startingLevel.starThresholds;
+
+            // Count how many thresholds are met
+            for (int i = 0; i < thresholds.Length; i++)
+            {
+                if (score >= thresholds[i])
+                {
+                    stars = i + 1;
+                }
+            }
+
+            // Ensure at least 1 star for completing
+            return Mathf.Max(1, stars);
         }
 
         public void LoadLevel(LevelData level)

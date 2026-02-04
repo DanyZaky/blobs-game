@@ -1,6 +1,8 @@
 using UnityEngine;
 using TMPro;
 using DG.Tweening;
+using UnityEngine.SceneManagement;
+using Blobs.Commands;
 
 namespace Blobs.Core
 {
@@ -23,6 +25,19 @@ namespace Blobs.Core
         [SerializeField] private Ease fadeInEase = Ease.OutBack;
         [SerializeField] private Ease fadeOutEase = Ease.InQuad;
 
+        [Header("Input UI")]
+        [SerializeField] private UnityEngine.UI.Button undoButton;
+
+        [Header("Win Panel")]
+        [SerializeField] private GameObject winPanel;
+        [SerializeField] private UnityEngine.UI.Image[] winStarImages;
+        [SerializeField] private UnityEngine.Sprite starFilledSprite;
+        [SerializeField] private UnityEngine.Sprite starEmptySprite;
+        [SerializeField] private TextMeshProUGUI winScoreText;
+        [SerializeField] private UnityEngine.UI.Button nextLevelButton;
+        [SerializeField] private UnityEngine.UI.Button retryButton;
+        [SerializeField] private UnityEngine.UI.Button menuButton;
+
         private Sequence currentFeedbackSequence;
         private Vector3 feedbackOriginalPosition;
 
@@ -44,6 +59,19 @@ namespace Blobs.Core
             }
         }
 
+        private void Start()
+        {
+            SetupButtonListeners();
+        }
+
+        private void SetupButtonListeners()
+        {
+            if (nextLevelButton != null) nextLevelButton.onClick.AddListener(OnNextLevelClicked);
+            if (retryButton != null) retryButton.onClick.AddListener(OnRetryClicked);
+            if (menuButton != null) menuButton.onClick.AddListener(OnMenuClicked);
+            if (undoButton != null) undoButton.onClick.AddListener(OnUndoClicked);
+        }
+
         private void OnDestroy()
         {
             if (Instance == this)
@@ -51,6 +79,58 @@ namespace Blobs.Core
 
             currentFeedbackSequence?.Kill();
         }
+
+        #region Button Handlers
+
+        private void OnNextLevelClicked()
+        {
+            // Get current level index from PlayerPrefs
+            int currentIndex = PlayerPrefs.GetInt("SelectedLevel", 0);
+            int nextIndex = currentIndex + 1;
+
+            // Check if there's a next level
+            if (nextIndex >= MainMenuController.TotalLevelCount)
+            {
+                Debug.Log("[UIManager] No more levels! Returning to menu.");
+                SceneManager.LoadScene("Menu");
+                return;
+            }
+
+            // Set next level data
+            LevelData nextLevel = MainMenuController.SetSelectedLevel(nextIndex);
+            if (nextLevel != null)
+            {
+                Debug.Log($"[UIManager] Loading next level: {nextLevel.levelName}");
+                SceneManager.LoadScene("MVPGameplay");
+            }
+            else
+            {
+                Debug.LogWarning("[UIManager] Failed to set next level, returning to menu.");
+                SceneManager.LoadScene("Menu");
+            }
+        }
+
+        private void OnRetryClicked()
+        {
+            Debug.Log("[UIManager] Retrying level");
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        private void OnMenuClicked()
+        {
+            Debug.Log("[UIManager] Returning to menu");
+            SceneManager.LoadScene("Menu");
+        }
+
+        private void OnUndoClicked()
+        {
+            if (CommandManager.Instance != null && CommandManager.Instance.CanUndo)
+            {
+                CommandManager.Instance.Undo();
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Show animated feedback text
@@ -135,6 +215,94 @@ namespace Blobs.Core
         public void ShowBlockedFeedback()
         {
             ShowFeedback("Path is blocked!");
+        }
+
+        #endregion
+
+        #region Win Panel
+
+        /// <summary>
+        /// Show win panel with star animation.
+        /// </summary>
+        public void ShowWinPanel(int stars, int score)
+        {
+            if (winPanel == null)
+            {
+                Debug.LogWarning("[UIManager] Win panel not assigned!");
+                return;
+            }
+
+            // Update score text
+            if (winScoreText != null)
+            {
+                winScoreText.text = $"Score: {score}";
+            }
+
+            // Update star display
+            UpdateWinStars(stars);
+
+            // Show panel with animation
+            winPanel.SetActive(true);
+            var panelRect = winPanel.GetComponent<RectTransform>();
+            if (panelRect != null)
+            {
+                panelRect.localScale = Vector3.zero;
+                panelRect.DOScale(1f, 0.4f).SetEase(Ease.OutBack);
+            }
+
+            // Animate stars sequentially
+            AnimateStars(stars);
+        }
+
+        private void UpdateWinStars(int stars)
+        {
+            if (winStarImages == null) return;
+
+            for (int i = 0; i < winStarImages.Length; i++)
+            {
+                if (winStarImages[i] != null)
+                {
+                    winStarImages[i].sprite = (i < stars) ? starFilledSprite : starEmptySprite;
+                    winStarImages[i].transform.localScale = Vector3.zero;
+                }
+            }
+        }
+
+        private void AnimateStars(int stars)
+        {
+            if (winStarImages == null) return;
+
+            for (int i = 0; i < winStarImages.Length && i < stars; i++)
+            {
+                if (winStarImages[i] != null)
+                {
+                    float delay = 0.5f + (i * 0.2f);
+                    winStarImages[i].transform
+                        .DOScale(1f, 0.3f)
+                        .SetEase(Ease.OutBack)
+                        .SetDelay(delay);
+                }
+            }
+
+            // Show empty stars immediately (no animation)
+            for (int i = stars; i < winStarImages.Length; i++)
+            {
+                if (winStarImages[i] != null)
+                {
+                    winStarImages[i].transform.localScale = Vector3.one;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Hide win panel.
+        /// </summary>
+        public void HideWinPanel()
+        {
+            if (winPanel != null)
+            {
+                winPanel.SetActive(false);
+            }
         }
 
         #endregion
